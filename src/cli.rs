@@ -1,8 +1,8 @@
 use clap::Parser;
 
 #[derive(Parser)]
-pub(crate) struct Cli {
-    source_currency_code: String,
-    target_currency_code: String,
-    amount: i32
+pub struct Cli {
+    pub source_currency_code: String,
+    pub target_currency_code: String,
+    pub amount: f64
 }
