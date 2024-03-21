@@ -5,6 +5,7 @@ use clap::Parser;
 use dotenv::dotenv;
 use serde_json::Map;
 use crate::custom_error::CustomError;
+use crate::exchange_tuple::ExchangeTuple;
 
 mod currency_api;
 mod cli;
@@ -49,7 +50,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     );
     match client.get_exchange_rates().await {
         Ok(result) => {},
-        Err(err) => println!("{}", err)
+        Err(err) => println!("{:?}", err)
     }
 
     let src_curr_code = &args.source_currency_code.to_uppercase();
@@ -58,12 +59,27 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let exchange_result =  client.calculate_exchange(
         &src_curr_code,
         &tar_curr_code,
-        &args.amount);
+        &args.amount
+    );
 
-    // println!("{:#?}", client.currencies_map);
+    match exchange_result {
+        Ok(tup) => println!("Total amount: {} {}\nExchange rate: {}",
+                            &tup.amount,
+                            &tup.currency_code,
+                            &tup.exchange_rate
+        ),
+        Err(err) => println!("{:?}", err)
+    }
+    // let exchange_result = ExchangeTuple::new()
+
+    // println!("Total amount: {} {}\nExchange rate: {}",
+    //          &exchange_result.unwrap().amount,
+    //          &exchange_result.unwrap().currency_code,
+    //          &exchange_result.unwrap().exchange_rate
+    // );
     Ok(())
 }
 
-fn print_type_of<T>(_: &T) {
-    println!("{}", std::any::type_name::<T>())
-}
+// fn print_type_of<T>(_: &T) {
+//     println!("{}", std::any::type_name::<T>())
+// }

@@ -1,7 +1,8 @@
+#[derive(Debug)]
 pub struct ExchangeTuple {
-    amount: f64,
-    currency_code: String,
-    exchange_rate: f64
+    pub amount: f64,
+    pub currency_code: String,
+    pub exchange_rate: f64
 }
 
 impl ExchangeTuple {
