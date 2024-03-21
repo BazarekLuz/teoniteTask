@@ -1,4 +1,4 @@
-use serde_json::{json, Map, Value};
+use serde_json::{Map, Value};
 use crate::custom_error::CustomError;
 use crate::exchange_tuple::ExchangeTuple;
 
@@ -43,7 +43,7 @@ impl ApiClient {
                 }
             },
             Err(err) => {
-                Err(CustomError::new("Something went wrong"))
+                Err(CustomError::new(err.to_string().as_str()))
             }
         }
     }
@@ -56,7 +56,9 @@ impl ApiClient {
     ) -> Result<ExchangeTuple, CustomError> {
         match &self.currencies_map["data"] {
             Value::Object(obj) => {
-                if let (Some(val1), Some(val2)) = (obj.get(src_curr_code), obj.get(trg_curr_code)) {
+                if let (Some(val1), Some(val2)) =
+                    (obj.get(src_curr_code.to_uppercase().as_str()),
+                     obj.get(trg_curr_code.to_uppercase().as_str())) {
                     let exchange_rate = val2.as_f64().unwrap() / val1.as_f64().unwrap();
                     let ret_amount = amount * &exchange_rate;
                     Ok(ExchangeTuple::new(ret_amount, trg_curr_code.to_string(), exchange_rate))
@@ -68,4 +70,3 @@ impl ApiClient {
         }
     }
 }
-
