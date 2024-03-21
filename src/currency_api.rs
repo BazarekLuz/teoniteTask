@@ -1,28 +1,29 @@
-use clap::error::ContextKind::Custom;
-use reqwest::Response;
-use serde_json::Value;
+use serde_json::{Map, Value};
 use crate::custom_error::CustomError;
 
 pub struct CurrencyApi {
     api_url: String,
     api_key: String,
-    http_client: reqwest::Client
+    http_client: reqwest::Client,
+    currencies_map: Map<String, Value>
 }
 
 impl CurrencyApi {
     pub fn new(
         api_url: String,
         api_key: String,
-        http_client: reqwest::Client
+        http_client: reqwest::Client,
+        currencies_map: Map<String, Value>
     ) -> Self {
         Self {
             api_url,
             api_key,
-            http_client
+            http_client,
+            currencies_map
         }
     }
 
-    pub async fn get_all_rates(&self) -> Result<&Value, CustomError> {
+    pub async fn get_all_rates(&self) -> Value {
         let response = self.http_client
             .get(&self.api_url)
             .header("apikey", &self.api_key)
@@ -30,43 +31,19 @@ impl CurrencyApi {
             .await
             .unwrap();
 
-        // match response.status() {
-        //     reqwest::StatusCode::OK => {
-        //         match response {
-        //             Value::Object(obj) => {
-        //
-        //             }
-        //         }
-        //     }
-        // }
+        let body = match response.status(){
+            reqwest::StatusCode::OK => {
+                response.text().await.unwrap()
+            },
+            reqwest::StatusCode::TOO_MANY_REQUESTS => {
+                String::from("Too many requests, limit set at 10 per minute / 5000 per month")
+            }
+            _ => {
+                panic!("Error occurred while unwrapping response body");
+            }
+        };
 
-        // let body = match response.status(){
-        //     reqwest::StatusCode::OK => {
-        //         response.text().await.unwrap()
-        //     },
-        //     // reqwest::StatusCode::TOO_MANY_REQUESTS => {
-        //     //
-        //     // }
-        //     _ => {
-        //         panic!("Blad");
-        //     }
-        // };
-
-
-        // serde_json::from_str(&body).unwrap()
-
-        // match response.status() {
-        //     reqwest::StatusCode::OK => {
-        //         let body = response.text().await.unwrap();
-        //         Ok(serde_json::from_str(&body).unwrap())
-        //     },
-        //     reqwest::StatusCode::TOO_MANY_REQUESTS => {
-        //         Err(CustomError::new("Too many requests! Limit is 10 requests per minute/ 5k per month."))
-        //     },
-        //     _ => {
-        //         Err(CustomError::new("Different error"))
-        //     }
-        // }
+        serde_json::from_str(&body).unwrap()
     }
 
     pub fn calculate_exchange<'a>(
